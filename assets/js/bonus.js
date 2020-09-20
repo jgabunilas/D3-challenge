@@ -1,5 +1,5 @@
 // @TODO: YOUR CODE HERE!
-// D3 Challenge
+// D3 Challenge - Bonus Assignment
 // Written by Jason Gabunilas
 
 // Initialize the variables for the svg canvas width, height, and margins
@@ -89,6 +89,37 @@ function renderCircles(circlesGroup, newXScale, newYScale, selectedXAxis, select
         return circlesGroup;
 }
 
+// Create an updateToolTip function that changes the values reported by the ToolTip when a new axis is chosen. This function must account for both axes
+function updateToolTip(selectedXAxis, selectedYAxis, circlesGroup) {
+
+        var label;
+      
+        if (chosenXAxis === "hair_length") {
+          label = "Hair Length:";
+        }
+        else {
+          label = "# of Albums:";
+        }
+      
+        var toolTip = d3.tip()
+          .attr("class", "tooltip")
+          .offset([80, -60])
+          .html(function(d) {
+            return (`${d.rockband}<br>${label} ${d[chosenXAxis]}`);
+          });
+      
+        circlesGroup.call(toolTip);
+      
+        circlesGroup.on("mouseover", function(data) {
+          toolTip.show(data);
+        })
+          // onmouseout event
+          .on("mouseout", function(data, index) {
+            toolTip.hide(data);
+          });
+      
+        return circlesGroup;
+      }
 
 // Import the data from the CSV file
 d3.csv('/assets/data/data.csv').then(function(censusData) {
@@ -160,21 +191,71 @@ d3.csv('/assets/data/data.csv').then(function(censusData) {
 
         // Create the axis labels
         // y-axis
-        scatterGroup.append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("y", 0 - margin.left + 40)
-                .attr("x", 0 - (height / 2) - 70)
-                .attr("dy", "1em")
-                .attr("class", "axisText")
-                .attr("font-size", "18px")
-                .attr("font-family", "sans-serif")
-                .text("% Without Healthcare");
-        // x-axis
-        scatterGroup.append("text")
-                .attr("transform", `translate(${(width / 2) - 55}, ${height + margin.top + 30})`)
-                .attr("class", "axisText")
-                .attr("font-family", "sans-serif")
+        // scatterGroup.append("text")
+        //         .attr("transform", "rotate(-90)")
+        //         .attr("y", 0 - margin.left + 40)
+        //         .attr("x", 0 - (height / 2) - 70)
+        //         .attr("dy", "1em")
+        //         .attr("class", "axisText")
+        //         .attr("font-size", "18px")
+        //         .attr("font-family", "sans-serif")
+        //         .text("% Without Healthcare");
+        // // x-axis
+        // scatterGroup.append("text")
+        //         .attr("transform", `translate(${(width / 2) - 55}, ${height + margin.top + 30})`)
+        //         .attr("class", "axisText")
+        //         .attr("font-family", "sans-serif")
+        //         .text("% In Poverty");
+
+        // Create groups for multiple x-axis and y-axis labels
+
+        // x-axis labels group
+        var xlabelsGroup = scatterGroup.append('g')
+        .attr("transform", `translate(${(width / 2)}, ${height + margin.top})`)
+
+        // Create variables for each x-axis category
+        var povertyLabel = xlabelsGroup.append('text')
+                .attr("x", 0)
+                .attr("y", 20)
+                .attr("value", "poverty") // value to grab for event listener
+                .classed("active", true)
                 .text("% In Poverty");
 
+        var ageLabel = xlabelsGroup.append('text')
+                .attr("x", 0)
+                .attr("y", 40)
+                .attr("value", "age") // value to grab for event listener
+                .classed("inactive", true)
+                .text("Median Age");
+        var incomeLabel = xlabelsGroup.append('text')
+                .attr("x", 0)
+                .attr("y", 60)
+                .attr("value", "income") // value to grab for event listener
+                .classed("inactive", true)
+                .text("Median Household Income");
 
+        // y-axis labels group
+        var ylabelsGroup = scatterGroup.append('g')
+        .attr("transform", "rotate(-90)")
+
+        var obesityLabel = ylabelsGroup.append('text')
+        .attr("x", -height/2)
+        .attr("y", -80)
+        .attr("value", "obesity") // value to grab for event listener
+        .classed("inactive", true)
+        .text("% Obese");
+
+        var obesityLabel = ylabelsGroup.append('text')
+                .attr("x", -height/2)
+                .attr("y", -60)
+                .attr("value", "smokes") // value to grab for event listener
+                .classed("inactive", true)
+                .text("% Smokers");
+        
+        var healthcareLabel = ylabelsGroup.append('text')
+                .attr("x", -height/2)
+                .attr("y", -40)
+                .attr("value", "healthcare") // value to grab for event listener
+                .classed("active", true)
+                .text("% Without Healthcare");
 })
