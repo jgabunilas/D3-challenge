@@ -90,33 +90,58 @@ function renderCircles(circlesGroup, newXScale, newYScale, selectedXAxis, select
 }
 
 // Create an updateToolTip function that changes the values reported by the ToolTip when a new axis is chosen. This function must account for both axes
-function updateToolTip(selectedXAxis, selectedYAxis, circlesGroup) {
+function updateToolTip(selectedXAxis, selectedYAxis, circlesGroup, circlesText) {
 
-        var label;
-      
-        if (chosenXAxis === "hair_length") {
-          label = "Hair Length:";
+        // Handle tooltip labels pertaining to the x-axis
+        var xlabel;
+        if (selectedXAxis === "poverty") {
+                xlabel = "Poverty:";
         }
-        else {
-          label = "# of Albums:";
+        else if (selectedXAxis === "age") {
+                xlabel = "Age:";
         }
+        else if (selectedXAxis === "income") {
+                xlabel = "Income:"
+        }
+
+        // Handle the tooltip labels pertaining to the y-axis
+        var ylabel;
+        if (selectedYAxis === "obesity") {
+                ylabel = "Obesity:";
+        }
+        else if (selectedYAxis === "smokes") {
+                ylabel = "Smokers:";
+        }
+        else if (selectedYAxis === "healthcare") {
+                ylabel = "Without Healthcare:"
+        }
+
+
       
         var toolTip = d3.tip()
-          .attr("class", "tooltip")
-          .offset([80, -60])
+        // Ensure the class of the tooltip matches the d3Style stylesheet
+          .attr("class", "d3-tip")
+          .offset([-5, 0])
           .html(function(d) {
-            return (`${d.rockband}<br>${label} ${d[chosenXAxis]}`);
+            return (`${d.state}<br>${xlabel} ${d[selectedXAxis]}<br>${ylabel} ${d[selectedYAxis]}`);
           });
       
         circlesGroup.call(toolTip);
       
+        // We want to have to data display regardless of whether we are mousing over the circle or the state abbreviation text. Thus, we must create two mousover handlers
         circlesGroup.on("mouseover", function(data) {
-          toolTip.show(data);
+                toolTip.show(data);
         })
-          // onmouseout event
-          .on("mouseout", function(data, index) {
-            toolTip.hide(data);
-          });
+                .on("mouseout", function(data, index) {
+                toolTip.hide(data);
+                });
+
+        circlesText.on("mouseover", function(data) {
+                toolTip.show(data);
+                })
+                .on("mouseout", function(data, index) {
+                        toolTip.hide(data);
+                });
       
         return circlesGroup;
       }
@@ -163,13 +188,13 @@ d3.csv('/assets/data/data.csv').then(function(censusData) {
         // Create a circlesGroup variable by selecting the circlesData group and appending circle elements for each unbound data point
         // Append a new circle element for each unbound data point  
         var circlesGroup = circlesData.append("circle")
-        // set the centers of the circles
-        .attr('cx', datum => xLinearScale(datum[selectedXAxis]))
-        .attr('cy', datum => yLinearScale(datum[selectedYAxis]))
-        // set the radii of the circles
-        .attr('r', 10)
-        // Set the circle appearance
-        .attr('fill', '#ff99ff')
+                // set the centers of the circles
+                .attr('cx', datum => xLinearScale(datum[selectedXAxis]))
+                .attr('cy', datum => yLinearScale(datum[selectedYAxis]))
+                // set the radii of the circles
+                .attr('r', 10)
+                // Set the circle appearance
+                .attr('fill', '#ff99ff')
 
         // var circlesGroup = scatterGroup.selectAll()
         //         .data(censusData)
@@ -258,4 +283,8 @@ d3.csv('/assets/data/data.csv').then(function(censusData) {
                 .attr("value", "healthcare") // value to grab for event listener
                 .classed("active", true)
                 .text("% Without Healthcare");
+
+        // call updateToolTip to update the tooltip information
+        var circlesGroup = updateToolTip(selectedXAxis, selectedYAxis, circlesGroup, circlesText)
+
 })
