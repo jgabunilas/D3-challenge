@@ -136,23 +136,22 @@ function updateToolTip(selectedXAxis, selectedYAxis, circlesGroup, circlesText) 
       
         circlesGroup.call(toolTip);
       
-        // We want to have to data display regardless of whether we are mousing over the circle or the state abbreviation text. Thus, we must create two mousover handlers
+        // We want to have to data display regardless of whether we are mousing over the circle or the state abbreviation text. Thus, we must create two mousover handlers, one for the circle and one for the circle text.
         circlesGroup.on("mouseover", function(data) {
                 toolTip.show(data);
+                // This event listener fills in a border when the circle is hovered over
+                d3.select(this)
+                        .attr('stroke', '#3333ff')
+                        .attr('stroke-width', '4');
         })
                 .on("mouseout", function(data, index) {
                 toolTip.hide(data);
+                // likewise, this event listener removes the border when the circle is no longer hovered over
+                d3.select(this).attr('stroke', null)
                 });
-
-        circlesText.on("mouseover", function(data) {
-                toolTip.show(data);
-                })
-                .on("mouseout", function(data, index) {
-                        toolTip.hide(data);
-                });
-      
+  
         return circlesGroup;
-      }
+}
 
 // Import the data from the CSV file
 d3.csv('/assets/data/data.csv').then(function(censusData) {
@@ -188,10 +187,20 @@ d3.csv('/assets/data/data.csv').then(function(censusData) {
 
         // Create a selection for the scatterGroup and save as a new variable circlesData. This variable will be used to add circles and text to the scatterplot
         var circlesData = scatterGroup.selectAll()
-        // bind the data to the group
-        .data(censusData)
-        // Create holding slots for unbound data 
-        .enter()
+                // bind the data to the group
+                .data(censusData)
+                // Create holding slots for unbound data 
+                .enter()
+
+        // Set the text within the circles by selecting the circlesData group and appending text elements for each unbound data point. By rendering the text before the actual circles, the circles will be placed "in front" of the text, ensuring that mousing over will always select the circle. We can ensure that the text will still be visibe by lowering the opacity for the cicles (see below)
+        var circlesText = circlesData.append('text')
+                .attr('x', datum => xLinearScale(datum[selectedXAxis]) - 6)
+                .attr('y', datum => yLinearScale(datum[selectedYAxis]) + 4)
+                .attr('fill', 'black')
+                .attr('font-size', '9px')
+                .attr('font-weight', 'bold')
+                .text(datum => datum.abbr)
+
 
         // Create a circlesGroup variable by selecting the circlesData group and appending circle elements for each unbound data point
         // Append a new circle element for each unbound data point  
@@ -203,18 +212,11 @@ d3.csv('/assets/data/data.csv').then(function(censusData) {
                 .attr('r', 10)
                 // Set the circle appearance
                 .attr('fill', '#ff99ff')
+                .attr('opacity', '0.4')
+                // .attr("stroke", "#3333ff")
 
 
-        // Set the text within the circles by selecting the circlesData group and appending text elements for each unbound data point
-        var circlesText = circlesData.append('text')
-                .attr('x', datum => xLinearScale(datum[selectedXAxis]) - 6)
-                .attr('y', datum => yLinearScale(datum[selectedYAxis]) + 4)
-                .attr('fill', 'black')
-                .attr('font-size', '8px')
-                .attr('font-weight', 'bold')
-                .text(datum => datum.abbr)
-
-        // Create groups for multiple x-axis and y-axis labels
+        // Create label groups for multiple x-axis and y-axis labels
 
         // x-axis labels group
         var xlabelsGroup = scatterGroup.append('g')
@@ -338,67 +340,69 @@ d3.csv('/assets/data/data.csv').then(function(censusData) {
         // Create the y-axis labels event listener, which will fire off whenever we click on a different y-axis label
 
         ylabelsGroup.selectAll("text")
-        .on("click", function() {
-        // retrieve the value of the axis label selection
-        var value = d3.select(this).attr("value");
-        console.log(value)
-        // Check whether the selected axis label is the same as the current selectedXAxis
-        if (value !== selectedYAxis) {
-                console.log(`Selected y-axis: ${value}`)
-                // If it is not, then replace the value
-                selectedYAxis = value;
+                .on("click", function() {
+                // retrieve the value of the axis label selection
+                var value = d3.select(this).attr("value");
+                console.log(value)
+                // Check whether the selected axis label is the same as the current selectedXAxis
+                if (value !== selectedYAxis) {
+                        console.log(`Selected y-axis: ${value}`)
+                        // If it is not, then replace the value
+                        selectedYAxis = value;
 
 
-                // functions here found above csv import
-                // updates y scale for new data
-                yLinearScale = yScale(censusData, selectedYAxis);
-        
-                // updates y axis with transition
-                yAxis = renderYAxis(yLinearScale, yAxis);
-        
-                // updates circles with new y values
-                circlesGroup = renderCircles(circlesGroup, xLinearScale, yLinearScale, selectedXAxis, selectedYAxis);
+                        // functions here found above csv import
+                        // updates y scale for new data
+                        yLinearScale = yScale(censusData, selectedYAxis);
+                
+                        // updates y axis with transition
+                        yAxis = renderYAxis(yLinearScale, yAxis);
+                
+                        // updates circles with new y values
+                        circlesGroup = renderCircles(circlesGroup, xLinearScale, yLinearScale, selectedXAxis, selectedYAxis);
 
-                // Update state abbreviation text location with new y values
-                circlesText = renderCircleText(circlesText, xLinearScale, yLinearScale, selectedXAxis, selectedYAxis)
-        
-                // updates tooltips with new info
-                circlesGroup = updateToolTip(selectedXAxis, selectedYAxis, circlesGroup, circlesText);
-        
-                // changes classes to change bold text for the y-axis labels
-                if (selectedYAxis === "obesity") {
-                obesityLabel
-                        .classed("active", true)
-                        .classed("inactive", false);
-                smokerLabel
-                        .classed("active", false)
-                        .classed("inactive", true);
-                healthcareLabel
-                        .classed("active", false)
-                        .classed("inactive", true)
+                        // Update state abbreviation text location with new y values
+                        circlesText = renderCircleText(circlesText, xLinearScale, yLinearScale, selectedXAxis, selectedYAxis)
+                
+                        // updates tooltips with new info
+                        circlesGroup = updateToolTip(selectedXAxis, selectedYAxis, circlesGroup, circlesText);
+                
+                        // changes classes to change bold text for the y-axis labels
+                        if (selectedYAxis === "obesity") {
+                                obesityLabel
+                                        .classed("active", true)
+                                        .classed("inactive", false);
+                                smokerLabel
+                                        .classed("active", false)
+                                        .classed("inactive", true);
+                                healthcareLabel
+                                        .classed("active", false)
+                                        .classed("inactive", true)
+                        }
+                        else if (selectedYAxis === "smokes") {
+                                obesityLabel
+                                        .classed("active", false)
+                                        .classed("inactive", true);
+                                smokerLabel
+                                        .classed("active", true)
+                                        .classed("inactive", false);
+                                healthcareLabel
+                                        .classed("active", false)
+                                        .classed("inactive", true)
+                        }
+                        else {
+                                obesityLabel
+                                        .classed("active", false)
+                                        .classed("inactive", true);
+                                smokerLabel
+                                        .classed("active", false)
+                                        .classed("inactive", true);
+                                healthcareLabel
+                                        .classed("active", true)
+                                        .classed("inactive", false)
+                        }
                 }
-                else if (selectedYAxis === "smokes") {
-                obesityLabel
-                        .classed("active", false)
-                        .classed("inactive", true);
-                smokerLabel
-                        .classed("active", true)
-                        .classed("inactive", false);
-                healthcareLabel
-                        .classed("active", false)
-                        .classed("inactive", true)
-                }
-                else {
-                obesityLabel
-                        .classed("active", false)
-                        .classed("inactive", true);
-                smokerLabel
-                        .classed("active", false)
-                        .classed("inactive", true);
-                healthcareLabel
-                        .classed("active", true)
-                        .classed("inactive", false)
-                }
-        }
-});
+        });
+
 })
+
