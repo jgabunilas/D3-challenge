@@ -42,17 +42,15 @@ d3.csv('/assets/data/data.csv').then(function(censusData) {
                 datum.obesity = +datum.obesity;
                 datum.smokes = +datum.smokes;
         });
-        // Create the scale functions for each axis that will scale input values to a particular value within the range of the axis. For part 1 we will use the poverty data for the x-axis and 
+        // Create the scale functions for each axis that will scale input values to a particular value within the range of the axis. For part 1 we will use the poverty data for the x-axis and healthcare data for the y-axis  
         var xLinearScale = d3.scaleLinear()
-        .domain(d3.extent(censusData, function(datum) {
-                // console.log(datum.poverty)
-                return datum.poverty
-        }))
-        .range([0, width]);
-
+                .domain([d3.min(censusData, datum => datum.poverty) * 0.95,
+                d3.max(censusData, datum => datum.poverty) * 1.05
+                ])
+                .range([0, width]);
         var yLinearScale = d3.scaleLinear()
         .domain([0, d3.max(censusData, function(datum) {
-                console.log(datum.healthcare)
+                // console.log(datum.healthcare)
                 return datum.healthcare
         })])
         .range([height, 0]);
@@ -69,5 +67,31 @@ d3.csv('/assets/data/data.csv').then(function(censusData) {
 
         scatterGroup.append('g')
         .call(yAxis);
+
+        // Create a selection for the scatterGroup and save as a new variable circlesData. This variable will be used to add circles and text to the scatterplot
+        var circlesData = scatterGroup.selectAll()
+        // bind the data to the group
+        .data(censusData)
+        // Create holding slots for unbound data 
+        .enter()
+
+        // Create a circlesGroup variable by selecting the circlesData group and appending circle elements for each unbound data point
+        // Append a new circle element for each unbound data point  
+        var circlesGroup = circlesData.append("circle")
+        // set the centers of the circles
+        .attr('cx', datum => xLinearScale(datum.poverty))
+        .attr('cy', datum => yLinearScale(datum.healthcare))
+        // set the radii of the circles
+        .attr('r', 10)
+        // Set the circle appearance
+        .attr('fill', '#ff99ff')
+
+        // Set the text within the circles by selecting the circlesData group and appending text elements for each unbound data point
+        var circlesText = circlesData.append('text')
+        .attr('x', datum => xLinearScale(datum.poverty) - 7)
+        .attr('y', datum => yLinearScale(datum.healthcare) + 7)
+        .attr('fill', 'black')
+        .attr()
+        .text(datum => datum.abbr)
 
 })
