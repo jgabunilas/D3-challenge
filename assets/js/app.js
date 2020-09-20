@@ -4,7 +4,7 @@
 
 // Initialize the variables for the svg canvas width, height, and margins
 
-var svgWidth = 1000;
+var svgWidth = 800;
 var svgHeight = 600;
 
 var margin = {
@@ -88,10 +88,29 @@ d3.csv('/assets/data/data.csv').then(function(censusData) {
 
         // Set the text within the circles by selecting the circlesData group and appending text elements for each unbound data point
         var circlesText = circlesData.append('text')
-        .attr('x', datum => xLinearScale(datum.poverty) - 7)
-        .attr('y', datum => yLinearScale(datum.healthcare) + 7)
+        .attr('x', datum => xLinearScale(datum.poverty) - 6)
+        .attr('y', datum => yLinearScale(datum.healthcare) + 4)
         .attr('fill', 'black')
-        .attr()
+        .attr('font-size', '10px')
         .text(datum => datum.abbr)
+
+        // Create the axis labels
+        // y-axis
+        scatterGroup.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left + 40)
+                .attr("x", 0 - (height / 2) - 70)
+                .attr("dy", "1em")
+                .attr("class", "axisText")
+                .attr("font-size", "18px")
+                .attr("font-family", "sans-serif")
+                .text("% Without Healthcare");
+        // x-axis
+        scatterGroup.append("text")
+                .attr("transform", `translate(${(width / 2) - 55}, ${height + margin.top + 30})`)
+                .attr("class", "axisText")
+                .attr("font-family", "sans-serif")
+                .text("% In Poverty");
+
 
 })
