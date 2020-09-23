@@ -198,7 +198,6 @@ d3.csv('/assets/data/data.csv').then(function(censusData) {
                 .attr('font-weight', 'bold')
                 .text(datum => datum.abbr)
 
-
         // Create a circlesGroup variable by selecting the circlesData group and appending circle elements for each unbound data point
         // Append a new circle element for each unbound data point  
         var circlesGroup = circlesData.append("circle")
