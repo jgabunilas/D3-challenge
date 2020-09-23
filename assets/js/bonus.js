@@ -35,9 +35,6 @@ var selectedYAxis = "healthcare";
 
 // Move the x- and y- linear scale functions out of the data call and into their own separate functions that can be called later. Add "padding" to both axes so that datapoints are not plotted exactly on the axis lines.
 function xScale(censusData, selectedXAxis) {
-        // console.log('function call is working')
-        // console.log(selectedXAxis)
-        // console.log(censusData)
 
         var xLinearScale = d3.scaleLinear()
                 .domain([d3.min(censusData, datum => datum[selectedXAxis]) * 0.95,
