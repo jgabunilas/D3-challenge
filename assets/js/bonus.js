@@ -151,7 +151,7 @@ function updateToolTip(selectedXAxis, selectedYAxis, circlesGroup, circlesText) 
 }
 
 // Import the data from the CSV file
-d3.csv('/assets/data/data.csv').then(function(censusData) {
+d3.csv('assets/data/data.csv').then(function(censusData) {
         // // Confirm successful import
         console.log(censusData)
         // Parse the data for each row, converting all applicable numeric values to strings
